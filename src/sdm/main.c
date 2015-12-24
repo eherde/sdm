@@ -1,55 +1,60 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <strings.h>
 #include <unistd.h>
 
 #include "options.h"
 
-extern char *which(const char *);
-extern int parse_cmdline(int, char *[], options *);
+extern int parse_cmdline(options *, int, char *[]);
+extern void release_opts(options *opts);
 extern int start(void);
 extern int stop(void);
+extern void free_paths(void);
 
+char **g_argv;
+options opts;
+
+/**
+ * @brief Print a usage string
+ * @param [in] fp File stream to print to
+ * @param [in] name Name of this executable
+ */
 void usage(FILE *fp, const char * const name)
 {
-	const char * const ufmt = "Usage: %s [OPTION]... ACTION\n"
-		"ACTION:\n"
-		"\tstart - start the service\n"
-		"\tstop  - stop the service\n";
+	const char * const ufmt = "Usage: %s [OPTION]... COMMAND\n"
+		"OPTION:\n"
+		"\t--help     display this message\n"
+		"\t--start    start the service\n"
+		"\t--stop     stop the service\n";
 	fprintf(fp, ufmt, name);
 }
 
 int main(int argc, char *argv[])
 {
-	options opts;
-	bzero(&opts, sizeof(opts));
 	int rv = EXIT_FAILURE;
-	char *path = NULL;
-	if (parse_cmdline(argc, argv, &opts) != 0) {
+	g_argv = argv;
+	bzero(&opts, sizeof(opts));
+	if (parse_cmdline(&opts, argc, argv) != 0) {
 		rv = 2;
 		usage(stderr, argv[0]);
 		goto out;
 	}
-	if (strstr(opts.cmd, "/") == NULL) {
-		path = which(opts.cmd);
-		if (!path) {
-			fprintf(stderr, "%s: %s not found", argv[0], opts.cmd);
-		}
-	} else {
-		path = strdup(opts.cmd);
-	}
-	if (access(path, X_OK) != 0) {
-		fprintf(stderr, "%s: %s: %s", argv[0], strerror(errno), path);
+	if (opts.help) {
+		usage(stdout, argv[0]);
+	} else if (opts.start) {
+		if (start() != 0)
+			goto out;
+	} else if (opts.stop) {
+		if (stop() != 0)
+			goto out;
+	} else { /* no actions given */
+		rv = 2;
+		usage(stderr, argv[0]);
 		goto out;
 	}
-	if (opts.start) {
-		start();
-	} else if (opts.stop) {
-		stop();
-	}
-	rv = 0;
+	rv = EXIT_SUCCESS;
 out:
+	release_opts(&opts);
+	free_paths();
 	return rv;
 }
