@@ -23,6 +23,7 @@ extern char *g_root;
 
 extern char *set_root(const char *cmd);
 extern char *set_pidfile(const char *root, const char *cmd);
+extern pid_t read_pidfile(const char *path);
 
 /**
  * @brief Check if we will be able to write to the pidfile by checking
@@ -232,7 +233,11 @@ int daemonize(void)
 	if (ret == -1) {
 		goto out;
 	}
-	rv = 0;
+	pid = read_pidfile(g_pidfile);
+	/* If a daemon is misconfigured, it can fail very quickly. Pause a moment,
+	 * then see if the process is still running */
+	usleep(100000); /* 0.1 seconds */
+	rv = check_proc(pid);
 out:
 	return rv;
 }
@@ -257,8 +262,7 @@ int start(void)
 	close_nonstd_fds();
 	reset_sighandlers();
 	reset_sigmask();
-	daemonize();
-	rv = 0;
+	rv = daemonize();
 out:
 	return rv;
 }
