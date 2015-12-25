@@ -8,7 +8,6 @@
 
 int check_proc(pid_t pid)
 {
-	printf("checking proc %d\n", pid);
 	return kill(pid, 0);
 }
 
