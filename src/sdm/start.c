@@ -23,6 +23,8 @@ extern char *g_root;
 
 extern char *set_root(const char *cmd);
 extern char *set_pidfile(const char *root, const char *cmd);
+
+int check_proc(pid_t pid);
 extern pid_t read_pidfile(const char *path);
 
 /**

@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *g_pidfile = 0; /* path to the pidfile */
-char *g_root = NULL; /* path to the root */
+char *g_pidfile = NULL; /* path to the pidfile */
+char *g_root = NULL;    /* path to the root */
 
 /**
  * @brief Free global path strings
