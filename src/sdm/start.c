@@ -24,7 +24,7 @@ extern char *g_root;
 extern char *set_root(const char *cmd);
 extern char *set_pidfile(const char *root, const char *cmd);
 
-int check_proc(pid_t pid);
+int check_proc(pid_t pid, const char *cmd, const char *path);
 extern pid_t read_pidfile(const char *path);
 
 /**
@@ -239,7 +239,7 @@ int daemonize(void)
 	/* If a daemon is misconfigured, it can fail very quickly. Pause a moment,
 	 * then see if the process is still running */
 	usleep(100000); /* 0.1 seconds */
-	rv = check_proc(pid);
+	rv = check_proc(pid, opts.cmd, opts.path);
 out:
 	return rv;
 }

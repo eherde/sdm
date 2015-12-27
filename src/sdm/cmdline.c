@@ -22,7 +22,7 @@ void release_opts(options *opts)
 	bzero(&opts, sizeof(opts));
 }
 
-static int help_fl=0, start_fl=0, stop_fl=0;
+static int help_fl=0, start_fl=0, stop_fl=0, status_fl=0;
 /**
  * @brief Parse the command line
  * @param [out] opts The options structure to fill
@@ -38,6 +38,7 @@ int parse_cmdline(options *opts, int argc, char * const argv[])
 		{ "help", no_argument, &help_fl, 1 },
 		{ "start", no_argument, &start_fl, (1<<0) },
 		{ "stop", no_argument, &stop_fl, (1<<1) },
+		{ "status", no_argument, &status_fl, (1<<2) },
 		{ 0, 0, 0, 0 }
 	};
 	int rv = -1;
@@ -92,6 +93,7 @@ int parse_cmdline(options *opts, int argc, char * const argv[])
 	opts->help = help_fl;
 	opts->start = start_fl;
 	opts->stop = stop_fl;
+	opts->status = status_fl;
 	rv = 0;
 out:
 	return rv;

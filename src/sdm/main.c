@@ -7,8 +7,11 @@
 
 extern int parse_cmdline(options *, int, char *[]);
 extern void release_opts(options *opts);
+
 extern int start(void);
 extern int stop(void);
+extern int status(void);
+
 extern void free_paths(void);
 
 char **g_argv;
@@ -41,18 +44,17 @@ int main(int argc, char *argv[])
 	}
 	if (opts.help) {
 		usage(stdout, argv[0]);
+	} else if (opts.status) {
+		rv = status();
 	} else if (opts.start) {
-		if (start() != 0)
-			goto out;
+		rv = start();
 	} else if (opts.stop) {
-		if (stop() != 0)
-			goto out;
+		rv = stop();
 	} else { /* no actions given */
 		rv = 2;
 		usage(stderr, argv[0]);
 		goto out;
 	}
-	rv = EXIT_SUCCESS;
 out:
 	release_opts(&opts);
 	free_paths();

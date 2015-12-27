@@ -10,5 +10,6 @@ typedef struct options_t
 	int help;      /* --help was passed */
 	int start;     /* --start was passed */
 	int stop;      /* --stop was passed */
+	int status;    /* --status was passed */
 } options;
 #endif
