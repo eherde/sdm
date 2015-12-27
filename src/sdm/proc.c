@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 int check_proc(pid_t pid)
@@ -36,13 +37,15 @@ out:
 	return pid;
 }
 
-pid_t lookup_pid(const char *cmd)
+pid_t lookup_pid(const char *cmd, const char *path)
 {
 	char name[NAME_MAX];
+	char exe[PATH_MAX];
 	char *file = NULL;
 	DIR *dir = NULL;
 	FILE *fp = NULL;
 	struct dirent *ent = NULL;
+	struct stat st_path, st_exe;
 	pid_t pid = -1, rv = -1;
 	dir = opendir("/proc");
 	while ((ent = readdir(dir)) != NULL) {
@@ -52,13 +55,27 @@ pid_t lookup_pid(const char *cmd)
 		free(file);
 		if (fp)
 			fclose(fp);
+		/* make sure we have the correct process name */
 		asprintf(&file, "/proc/%d/status", pid);
 		fp = fopen(file, "r");
 		if (!fp)
 			goto out;
 		if (fscanf(fp, "%*s %s", name) != 1)
 			goto out;
-		if (strcmp(name, cmd) == 0) {
+		if (strcmp(name, cmd) != 0) {
+			continue;
+		}
+		free(file);
+		/* make sure this is the correct executable */
+		asprintf(&file, "/proc/%d/exe", pid);
+		bzero(exe, sizeof(exe));
+		if (readlink(file, exe, PATH_MAX-1) == -1)
+			goto out;
+		if (stat(path, &st_path) != 0)
+			goto out;
+		if (stat(exe, &st_exe) != 0)
+			goto out;
+		if (st_path.st_dev == st_exe.st_dev && st_path.st_ino == st_exe.st_ino) {
 			rv = pid;
 			break;
 		}
